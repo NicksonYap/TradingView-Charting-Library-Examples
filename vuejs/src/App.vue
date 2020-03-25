@@ -5,7 +5,7 @@
       TradingView Charting Library and Vue.js Integration Example
     </h1>
   </header>
-  <TVChartContainer />
+  <TVChartContainer container-id="tv_chart_container"/>
 </div>
 </template>
 
@@ -35,6 +35,10 @@ export default {
     &__title {
         display: block;
         font-size: 1.5em;
+    }
+    
+    #tv_chart_container {
+      height: calc(100vh - 80px);
     }
 }
 </style>

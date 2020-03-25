@@ -4,7 +4,14 @@
 
 <script>
 
-import { widget } from '../charting_library.min';
+//TradingView Charting Library
+import * as TradingView from '../../public/charting_library/charting_library.min.js'; //NOTE: remember update libraryPath if if not in 'public/charting_library/charting_library.min.js'
+
+// import {UDFCompatibleDatafeed} from './datafeeds/udf/dist/bundle.js'; //precompiled datafeed
+import {UDFCompatibleDatafeed} from './datafeeds/udf/src/udf-compatible-datafeed.js';
+
+// import './datafeeds/udf/dist/polyfills.js' //precompiled polyfills, no need npm install
+// import './datafeeds/udf/src/polyfills.es6' //need to run npm install promise-polyfill whatwg-fetch
 
 function getLanguageFromURL() {
   const regex = new RegExp('[\\?&]lang=([^&#]*)');
@@ -32,7 +39,7 @@ export default {
       type: String,
     },
     libraryPath: {
-      default: '/charting_library/',
+      default: '/charting_library/', //NOTE: change this if not in 'public/charting_library/charting_library.min.js' required to access static files
       type: String,
     },
     chartsStorageUrl: {
@@ -68,7 +75,7 @@ export default {
     const widgetOptions = {
       symbol: this.symbol,
       // BEWARE: no trailing slash is expected in feed URL
-      datafeed: new window.Datafeeds.UDFCompatibleDatafeed(this.datafeedUrl),
+      datafeed: new UDFCompatibleDatafeed(this.datafeedUrl),
       interval: this.interval,
       container_id: this.containerId,
       library_path: this.libraryPath,
@@ -85,7 +92,11 @@ export default {
       studies_overrides: this.studiesOverrides,
     };
 
-    const tvWidget = new widget(widgetOptions);
+
+    // eslint-disable-next-line no-console
+    console.log('TradingView version: ', TradingView.version())
+
+    const tvWidget = new TradingView.widget(widgetOptions);
     this.tvWidget = tvWidget;
 
     tvWidget.onChartReady(() => {
@@ -118,7 +129,4 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.TVChartContainer {
-  height: calc(100vh - 80px);
-}
 </style>
