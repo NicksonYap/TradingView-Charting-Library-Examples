@@ -10,6 +10,8 @@ import * as TradingView from '../../public/charting_library/charting_library.min
 // import {UDFCompatibleDatafeed} from './datafeeds/udf/dist/bundle.js'; //precompiled datafeed
 import {UDFCompatibleDatafeed} from './datafeeds/udf/src/udf-compatible-datafeed.js';
 
+import {BrokerSample} from './broker-sample/dist/bundle.js';
+
 // import './datafeeds/udf/dist/polyfills.js' //precompiled polyfills, no need npm install
 // import './datafeeds/udf/src/polyfills.es6' //need to run npm install promise-polyfill whatwg-fetch
 
@@ -19,6 +21,13 @@ function getLanguageFromURL() {
   return results === null ? null : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 
+function getParameterByName(name) {
+  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+      results = regex.exec(location.search);
+  return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+}
+      
 export default {
   name: 'TVChartContainer',
   props: {
@@ -72,17 +81,18 @@ export default {
   },
   tvWidget: null,
   mounted() {
+    var datafeed = new UDFCompatibleDatafeed(this.datafeedUrl)
     const widgetOptions = {
       symbol: this.symbol,
       // BEWARE: no trailing slash is expected in feed URL
-      datafeed: new UDFCompatibleDatafeed(this.datafeedUrl),
+      datafeed: datafeed,
       interval: this.interval,
       container_id: this.containerId,
       library_path: this.libraryPath,
 
       locale: getLanguageFromURL() || 'en',
       disabled_features: ['use_localstorage_for_settings'],
-      enabled_features: ['study_templates'],
+      enabled_features: ['study_templates', 'dome_widget'],
       charts_storage_url: this.chartsStorageUrl,
       charts_storage_api_version: this.chartsStorageApiVersion,
       client_id: this.clientId,
@@ -90,6 +100,65 @@ export default {
       fullscreen: this.fullscreen,
       autosize: this.autosize,
       studies_overrides: this.studiesOverrides,
+
+      theme: getParameterByName('theme'),
+      
+      
+					widgetbar: {
+						details: true,
+						news: true,
+						watchlist: true,
+						watchlist_settings: {
+							default_symbols: ["MSFT", "IBM", "AAPL"]
+						}
+					},
+
+					rss_news_feed: {
+						"default": [ {
+							url: "https://demo_feed.tradingview.com/news?symbol={SYMBOL}",
+							name: "Yahoo Finance"
+						} ]
+					},
+
+					brokerFactory: function(host) { return new BrokerSample(host, datafeed); },
+					brokerConfig: {
+						configFlags: {
+							supportBottomWidget: true,
+							supportNativeReversePosition: true,
+							supportClosePosition: true,
+							supportPLUpdate: true,
+							supportLevel2Data: false,
+							showQuantityInsteadOfAmount: true,
+							supportEditAmount: false,
+						},
+						durations: [
+							{ name: 'DAY', value: 'DAY' },
+							{ name: 'GTC', value: 'GTC' },
+						],
+						orderDialogOptions: {
+							customFields: [
+								{
+									id: '2410',
+									inputType: 'ComboBox',
+									title: 'Execution',
+									items: [
+										{
+											text: 'General',
+											value: 'General',
+										},
+										{
+											text: 'Iceberg',
+											value: 'Iceberg',
+										},
+										{
+											text: 'AOL',
+											value: 'AOL',
+										},
+									],
+								},
+							],
+						},
+					},
     };
 
 
